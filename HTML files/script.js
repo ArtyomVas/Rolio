@@ -1,4 +1,8 @@
-// Initialize the game state
+// Initialize the canvas and context
+const canvas = document.getElementById('gameCanvas'); // Use your existing canvas
+const ctx = canvas.getContext('2d'); // Get the 2D context
+
+// Game state
 const gridSize = 20; // Size of each grid cell (in pixels)
 const snake = [
     { x: gridSize * 5, y: gridSize * 5 }, // Initial position of the snake
@@ -21,8 +25,7 @@ function drawFood() {
 
 // Function to clear the canvas
 function clearCanvas() {
-    ctx.fillStyle = 'lightgreen';
-    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clears the entire canvas
 }
 
 // Main draw function

@@ -1,83 +1,91 @@
+// Canvas and Context Initialization
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
 
-const canvas = document.getElementById('gameCanvas'); // Use your existing canvas
-const ctx = canvas.getContext('2d'); // Get the 2D context
-const gridSize = 20; // Size of each grid cell (in pixels)
-const snake = [{ x: gridSize * 5, y: gridSize * 5 }]; // Initial position of the snake
-let food = { x: gridSize * 10, y: gridSize * 10 }; // Initial position of the food
-let direction = { x: gridSize, y: 0 }; // Initial direction (moving right)
+// Game Constants
+const GRID_SIZE = 20;
+const CANVAS_WIDTH = canvas.width;
+const CANVAS_HEIGHT = canvas.height;
+const VALID_DIRECTIONS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
+const GAME_SPEED = 100;
+
+// Game Variables
+const snake = [{ x: GRID_SIZE * 5, y: GRID_SIZE * 5 }];
+let food = { x: GRID_SIZE * 10, y: GRID_SIZE * 10 };
+let direction = { x: GRID_SIZE, y: 0 }; // Start moving right
 let score = 0;
-let gameInterval;
+let lastTime = 0;
 
-document.addEventListener('keydown', event => {
-    switch (event.key) {
-        case 'ArrowUp':
-            if (direction.y === 0) direction = { x: 0, y: -gridSize };
-            break;
-        case 'ArrowDown':
-            if (direction.y === 0) direction = { x: 0, y: gridSize };
-            break;
-        case 'ArrowLeft':
-            if (direction.x === 0) direction = { x: -gridSize, y: 0 };
-            break;
-        case 'ArrowRight':
-            if (direction.x === 0) direction = { x: gridSize, y: 0 };
-            break;
+// Event Listener for Movement
+document.addEventListener('keydown', (event) => {
+    if (VALID_DIRECTIONS.has(event.key)) {
+        switch (event.key) {
+            case 'ArrowUp':
+                if (direction.y === 0) direction = { x: 0, y: -GRID_SIZE };
+                break;
+            case 'ArrowDown':
+                if (direction.y === 0) direction = { x: 0, y: GRID_SIZE };
+                break;
+            case 'ArrowLeft':
+                if (direction.x === 0) direction = { x: -GRID_SIZE, y: 0 };
+                break;
+            case 'ArrowRight':
+                if (direction.x === 0) direction = { x: GRID_SIZE, y: 0 };
+                break;
+        }
     }
 });
 
-// Function to draw the snake
+// Draw the Snake
 function drawSnake() {
     ctx.fillStyle = 'darkgreen';
     snake.forEach(segment => {
-        ctx.fillRect(segment.x, segment.y, gridSize, gridSize);
+        ctx.fillRect(segment.x, segment.y, GRID_SIZE, GRID_SIZE);
     });
 }
 
-// Function to draw the food
+// Draw the Food
 function drawFood() {
     ctx.fillStyle = 'red';
-    ctx.fillRect(food.x, food.y, gridSize, gridSize);
+    ctx.fillRect(food.x, food.y, GRID_SIZE, GRID_SIZE);
 }
 
-// Function to clear the canvas
+// Draw the Score
+function drawScore() {
+    ctx.fillStyle = 'black';
+    ctx.font = '16px Arial';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+}
+
+// Clear the Canvas
 function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clears the entire canvas
+    ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
 
-// Function to move the snake
+// Move the Snake
 function moveSnake() {
     const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
-    snake.unshift(head); // Add the new head
+    snake.unshift(head);
 
     // Check if the snake eats the food
     if (head.x === food.x && head.y === food.y) {
-        // Increase score
-        score++;
-        // Reposition food
+        score++; // Increment the score
         food = {
-            x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
-            y: Math.floor(Math.random() * (canvas.height / gridSize)) * gridSize,
+            x: Math.floor(Math.random() * (CANVAS_WIDTH / GRID_SIZE)) * GRID_SIZE,
+            y: Math.floor(Math.random() * (CANVAS_HEIGHT / GRID_SIZE)) * GRID_SIZE,
         };
     } else {
         snake.pop(); // Remove the last segment if no food is eaten
     }
 }
 
-// Check if the head hits the canvas borders
+// Check for Collisions with Borders
 function checkCollision() {
     const head = snake[0];
-    if (
-        head.x < 0 || 
-        head.x >= canvas.width || 
-        head.y < 0 || 
-        head.y >= canvas.height
-    ) {
-        return true;
-    }
-    return false;
+    return head.x < 0 || head.x >= CANVAS_WIDTH || head.y < 0 || head.y >= CANVAS_HEIGHT;
 }
 
-// Check if the head collides with any other part of the snake
+// Check for Collisions with Itself
 function checkSelfCollision() {
     const head = snake[0];
     for (let i = 1; i < snake.length; i++) {
@@ -88,38 +96,39 @@ function checkSelfCollision() {
     return false;
 }
 
-function drawScore() {
-    ctx.fillStyle = 'black';
-    ctx.font = '16px Arial';
-    ctx.fillText(`Score: ${score}`, 10, 20);
-}
+// Main Game Loop
+function gameLoop(timestamp) {
+    const timeSinceLastFrame = timestamp - lastTime;
 
-function draw() {
-    clearCanvas();
-    moveSnake();
+    if (timeSinceLastFrame >= GAME_SPEED) {
+        lastTime = timestamp;
 
-    if (checkCollision() || checkSelfCollision()) {
-        clearInterval(gameInterval);
-        alert('Game Over!');
-        return;
+        clearCanvas();
+        moveSnake();
+
+        if (checkCollision() || checkSelfCollision()) {
+            alert(`Game Over! Your score: ${score}`);
+            return;
+        }
+
+        drawSnake();
+        drawFood();
+        drawScore();
     }
 
-    drawSnake();
-    drawFood();
-    drawScore();
+    requestAnimationFrame(gameLoop);
 }
 
+// Restart Button Logic
 document.getElementById('restartButton').addEventListener('click', () => {
-    // Reset game state
     score = 0;
     snake.length = 1;
-    snake[0] = { x: gridSize * 5, y: gridSize * 5 };
-    direction = { x: gridSize, y: 0 };
-    food = { x: gridSize * 10, y: gridSize * 10 };
-
-    // Restart the game loop
-    clearInterval(gameInterval);
-    gameInterval = setInterval(draw, 100);
+    snake[0] = { x: GRID_SIZE * 5, y: GRID_SIZE * 5 };
+    direction = { x: GRID_SIZE, y: 0 };
+    food = { x: GRID_SIZE * 10, y: GRID_SIZE * 10 };
+    lastTime = 0;
+    requestAnimationFrame(gameLoop);
 });
 
-gameInterval = setInterval(draw, 100);
+// Start the Game
+requestAnimationFrame(gameLoop);

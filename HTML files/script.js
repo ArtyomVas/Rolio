@@ -5,6 +5,8 @@ const gridSize = 20; // Size of each grid cell (in pixels)
 const snake = [{ x: gridSize * 5, y: gridSize * 5 }]; // Initial position of the snake
 let food = { x: gridSize * 10, y: gridSize * 10 }; // Initial position of the food
 let direction = { x: gridSize, y: 0 }; // Initial direction (moving right)
+let score = 0;
+
 
 document.addEventListener('keydown', event => {
     switch (event.key) {
@@ -49,6 +51,8 @@ function moveSnake() {
 
     // Check if the snake eats the food
     if (head.x === food.x && head.y === food.y) {
+        // Increase score
+        score++;
         // Reposition food
         food = {
             x: Math.floor(Math.random() * (canvas.width / gridSize)) * gridSize,
@@ -84,6 +88,12 @@ function checkSelfCollision() {
     return false;
 }
 
+function drawScore() {
+    ctx.fillStyle = 'black';
+    ctx.font = '16px Arial';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+}
+
 function draw() {
     clearCanvas();
     moveSnake();
@@ -96,6 +106,7 @@ function draw() {
 
     drawSnake();
     drawFood();
+    drawScore();
 }
 
 gameInterval = setInterval(draw, 100);

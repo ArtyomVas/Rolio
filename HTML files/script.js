@@ -6,7 +6,7 @@ const snake = [{ x: gridSize * 5, y: gridSize * 5 }]; // Initial position of the
 let food = { x: gridSize * 10, y: gridSize * 10 }; // Initial position of the food
 let direction = { x: gridSize, y: 0 }; // Initial direction (moving right)
 let score = 0;
-
+let gameInterval;
 
 document.addEventListener('keydown', event => {
     switch (event.key) {
@@ -108,5 +108,18 @@ function draw() {
     drawFood();
     drawScore();
 }
+
+document.getElementById('restartButton').addEventListener('click', () => {
+    // Reset game state
+    score = 0;
+    snake.length = 1;
+    snake[0] = { x: gridSize * 5, y: gridSize * 5 };
+    direction = { x: gridSize, y: 0 };
+    food = { x: gridSize * 10, y: gridSize * 10 };
+
+    // Restart the game loop
+    clearInterval(gameInterval);
+    gameInterval = setInterval(draw, 100);
+});
 
 gameInterval = setInterval(draw, 100);

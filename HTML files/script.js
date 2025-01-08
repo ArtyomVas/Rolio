@@ -59,13 +59,43 @@ function moveSnake() {
     }
 }
 
-// Main draw function
+// Check if the head hits the canvas borders
+function checkCollision() {
+    const head = snake[0];
+    if (
+        head.x < 0 || 
+        head.x >= canvas.width || 
+        head.y < 0 || 
+        head.y >= canvas.height
+    ) {
+        return true;
+    }
+    return false;
+}
+
+// Check if the head collides with any other part of the snake
+function checkSelfCollision() {
+    const head = snake[0];
+    for (let i = 1; i < snake.length; i++) {
+        if (head.x === snake[i].x && head.y === snake[i].y) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function draw() {
     clearCanvas();
     moveSnake();
+
+    if (checkCollision() || checkSelfCollision()) {
+        clearInterval(gameInterval);
+        alert('Game Over!');
+        return;
+    }
+
     drawSnake();
     drawFood();
 }
 
-// Run the draw function every 100ms
-setInterval(draw, 100);
+gameInterval = setInterval(draw, 100);

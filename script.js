@@ -113,10 +113,18 @@ function moveSnake() {
     // Check if the snake eats the food
     if (head.x === food.x && head.y === food.y) {
         score++; // Increment the score
-        food = {
-            x: Math.floor(Math.random() * (CANVAS_WIDTH / GRID_SIZE)) * GRID_SIZE,
-            y: Math.floor(Math.random() * (CANVAS_HEIGHT / GRID_SIZE)) * GRID_SIZE,
-        };
+        let isFoodOnSnake;
+        do {
+            // Generate a random position for the food
+            food = {
+                x: Math.floor(Math.random() * (CANVAS_WIDTH / GRID_SIZE)) * GRID_SIZE,
+                y: Math.floor(Math.random() * (CANVAS_HEIGHT / GRID_SIZE)) * GRID_SIZE,
+            };
+    
+            // Check if the food position overlaps with any part of the snake
+            isFoodOnSnake = snake.some(segment => segment.x === food.x && segment.y === food.y);
+        } while (isFoodOnSnake); // Repeat until the food does not overlap with the snake
+        
     } else {
         snake.pop(); // Remove the last segment if no food is eaten
     }
@@ -125,7 +133,14 @@ function moveSnake() {
 // Check for Collisions with Borders
 function checkCollision() {
     const head = snake[0];
-    return head.x < 0 || head.x >= CANVAS_WIDTH || head.y < 0 || head.y >= CANVAS_HEIGHT;
+    const collided = head.x < 0 || head.x >= CANVAS_WIDTH || head.y < 0 || head.y >= CANVAS_HEIGHT;
+
+    if (collided) {
+        console.log(`Wall Collision Detected! Head Position: x=${head.x}, y=${head.y}`);
+        console.log(`Canvas Bounds: width=${CANVAS_WIDTH}, height=${CANVAS_HEIGHT}`);
+    }
+
+    return collided;
 }
 
 // Check for Collisions with Itself
@@ -133,6 +148,8 @@ function checkSelfCollision() {
     const head = snake[0];
     for (let i = 1; i < snake.length; i++) {
         if (head.x === snake[i].x && head.y === snake[i].y) {
+            console.log(`Self-Collision Detected! Head Position: x=${head.x}, y=${head.y}`);
+            console.log(`Collided with Body Segment: Index=${i}, x=${snake[i].x}, y=${snake[i].y}`);
             return true;
         }
     }
@@ -149,8 +166,19 @@ function gameLoop(timestamp) {
         clearCanvas();
         moveSnake();
 
-        if (checkCollision() || checkSelfCollision()) {
-            alert(`Game Over! Your score: ${score}`);
+        if (checkCollision()) {
+            console.log('Game Stopped: Collision with Wall');
+            console.log('Snake:', JSON.stringify(snake));
+            console.log('Food Position:', food);
+            alert(`Game Over! You hit the wall. Your score: ${score}`);
+            return;
+        }
+
+        if (checkSelfCollision()) {
+            console.log('Game Stopped: Collision with Self');
+            console.log('Snake:', JSON.stringify(snake));
+            console.log('Food Position:', food);
+            alert(`Game Over! You collided with yourself. Your score: ${score}`);
             return;
         }
 

@@ -123,8 +123,10 @@ function moveSnake() {
     
             // Check if the food position overlaps with any part of the snake
             isFoodOnSnake = snake.some(segment => segment.x === food.x && segment.y === food.y);
+            console.log(`Generated on snake: ${isFoodOnSnake}`);
+            console.log(`Generated Food Position: x=${food.x}, y=${food.y}`);
         } while (isFoodOnSnake); // Repeat until the food does not overlap with the snake
-        
+
     } else {
         snake.pop(); // Remove the last segment if no food is eaten
     }

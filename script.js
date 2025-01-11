@@ -4,8 +4,8 @@ const ctx = canvas.getContext('2d');
 
 // Game Constants
 const GRID_SIZE = 20;
-const CANVAS_WIDTH = canvas.width;
-const CANVAS_HEIGHT = canvas.height;
+let CANVAS_WIDTH = canvas.width;
+let CANVAS_HEIGHT = canvas.height;
 const VALID_DIRECTIONS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight']);
 const GAME_SPEED = 100;
 
@@ -15,6 +15,35 @@ let food = { x: GRID_SIZE * 10, y: GRID_SIZE * 10 };
 let direction = { x: GRID_SIZE, y: 0 }; // Start moving right
 let score = 0;
 let lastTime = 0;
+
+// Platform Detection
+function detectPlatform() {
+    const userAgent = navigator.userAgent;
+    if (/android/i.test(userAgent)) return "Android";
+    if (/iPhone|iPad|iPod/i.test(userAgent)) return "iOS";
+    if (/Win/i.test(userAgent)) return "Windows";
+    if (/Mac/i.test(userAgent)) return "MacOS";
+    if (/Linux/i.test(userAgent)) return "Linux";
+    return "Unknown";
+}
+
+// Adjust for Platform
+function adjustForPlatform() {
+    const platform = detectPlatform();
+    console.log(`Platform detected: ${platform}`);
+
+    if (platform === "Android" || platform === "iOS") {
+        // Enable touch controls for mobile
+        document.getElementById('controls').style.display = 'flex';
+        canvas.width = Math.min(window.innerWidth * 0.9, 400);
+        canvas.height = Math.min(window.innerWidth * 0.9, 400);
+    } else {
+        // Disable touch controls for desktop
+        document.getElementById('controls').style.display = 'none';
+    }
+    CANVAS_WIDTH = canvas.width;
+    CANVAS_HEIGHT = canvas.height;
+}
 
 // Event Listener for Movement
 document.addEventListener('keydown', (event) => {
@@ -34,6 +63,20 @@ document.addEventListener('keydown', (event) => {
                 break;
         }
     }
+});
+
+// Touch Controls
+document.getElementById('up')?.addEventListener('click', () => {
+    if (direction.y === 0) direction = { x: 0, y: -GRID_SIZE };
+});
+document.getElementById('down')?.addEventListener('click', () => {
+    if (direction.y === 0) direction = { x: 0, y: GRID_SIZE };
+});
+document.getElementById('left')?.addEventListener('click', () => {
+    if (direction.x === 0) direction = { x: -GRID_SIZE, y: 0 };
+});
+document.getElementById('right')?.addEventListener('click', () => {
+    if (direction.x === 0) direction = { x: GRID_SIZE, y: 0 };
 });
 
 // Draw the Snake
@@ -57,7 +100,7 @@ function drawScore() {
     ctx.fillText(`Score: ${score}`, 10, 20);
 }
 
-// Clear the Canvas
+// Canvas Clearing
 function clearCanvas() {
     ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 }
@@ -96,7 +139,7 @@ function checkSelfCollision() {
     return false;
 }
 
-// Main Game Loop
+// Main Game Logic
 function gameLoop(timestamp) {
     const timeSinceLastFrame = timestamp - lastTime;
 
@@ -119,7 +162,7 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-// Restart Button Logic
+// Restart Button
 document.getElementById('restartButton').addEventListener('click', () => {
     score = 0;
     snake.length = 1;
@@ -130,5 +173,6 @@ document.getElementById('restartButton').addEventListener('click', () => {
     requestAnimationFrame(gameLoop);
 });
 
-// Start the Game
+// Initialize Game
+adjustForPlatform();
 requestAnimationFrame(gameLoop);
